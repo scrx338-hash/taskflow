@@ -1,0 +1,39 @@
+type UpdateTaskResult = 
+ variant {
+   err: text;
+   ok: Task;
+ };
+type ToggleTaskResult = 
+ variant {
+   err: text;
+   ok: Task;
+ };
+type TaskId = text;
+type Task = 
+ record {
+   completed: bool;
+   createdAt: int;
+   description: text;
+   id: TaskId;
+   owner: principal;
+   title: text;
+   updatedAt: int;
+ };
+type DeleteTaskResult = 
+ variant {
+   err: text;
+   ok: bool;
+ };
+type CreateTaskResult = 
+ variant {
+   err: text;
+   ok: Task;
+ };
+service : {
+  createTask: (title: text, description: text) -> (CreateTaskResult);
+  deleteTask: (id: TaskId) -> (DeleteTaskResult);
+  getTasks: () -> (vec Task) query;
+  toggleTask: (id: TaskId) -> (ToggleTaskResult);
+  updateTask: (id: TaskId, title: text, description: text) ->
+   (UpdateTaskResult);
+}

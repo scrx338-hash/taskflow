@@ -1,0 +1,23 @@
+{
+  "overview": "TaskFlow is a private todo list app with Internet Identity login. Each user has their own isolated task list — add, complete, edit, and delete tasks that persist permanently. Features a modern dark-mode UI that works on mobile and desktop.",
+  "features": [
+    "Internet Identity login — no passwords needed",
+    "Private per-user task list with full isolation",
+    "Add, complete, edit, and delete tasks",
+    "Tasks persist permanently across sessions",
+    "Dark mode toggle with preference saved",
+    "Fully responsive on mobile and desktop",
+    "Clean modern UI with smooth transitions",
+    "Empty state and loading states handled gracefully"
+  ],
+  "category": "productivity",
+  "tags": [
+    "todo",
+    "tasks",
+    "productivity",
+    "internet-identity",
+    "dark-mode",
+    "responsive"
+  ],
+  "last_updated": "2026-04-14T02:45:06.663Z"
+}
