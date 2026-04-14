@@ -10,10 +10,22 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export type Category = { 'Work' : null } |
+  { 'Personal' : null } |
+  { 'Urgent' : null };
+export interface CreateTaskInput {
+  'title' : string,
+  'description' : string,
+  'category' : [] | [Category],
+  'priority' : [] | [Priority],
+}
 export type CreateTaskResult = { 'ok' : Task } |
   { 'err' : string };
 export type DeleteTaskResult = { 'ok' : boolean } |
   { 'err' : string };
+export type Priority = { 'Low' : null } |
+  { 'High' : null } |
+  { 'Medium' : null };
 export interface Task {
   'id' : TaskId,
   'title' : string,
@@ -22,18 +34,26 @@ export interface Task {
   'completed' : boolean,
   'description' : string,
   'updatedAt' : bigint,
+  'category' : [] | [Category],
+  'priority' : [] | [Priority],
 }
 export type TaskId = string;
 export type ToggleTaskResult = { 'ok' : Task } |
   { 'err' : string };
+export interface UpdateTaskInput {
+  'title' : string,
+  'description' : string,
+  'category' : [] | [Category],
+  'priority' : [] | [Priority],
+}
 export type UpdateTaskResult = { 'ok' : Task } |
   { 'err' : string };
 export interface _SERVICE {
-  'createTask' : ActorMethod<[string, string], CreateTaskResult>,
+  'createTask' : ActorMethod<[CreateTaskInput], CreateTaskResult>,
   'deleteTask' : ActorMethod<[TaskId], DeleteTaskResult>,
   'getTasks' : ActorMethod<[], Array<Task>>,
   'toggleTask' : ActorMethod<[TaskId], ToggleTaskResult>,
-  'updateTask' : ActorMethod<[TaskId, string, string], UpdateTaskResult>,
+  'updateTask' : ActorMethod<[TaskId, UpdateTaskInput], UpdateTaskResult>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

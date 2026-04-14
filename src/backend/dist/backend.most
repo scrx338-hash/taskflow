@@ -1,28 +1,49 @@
-// Version: 1.0.0
+// Version: 3.0.0
+type Category__299622304 = {#Personal; #Urgent; #Work};
 type Data__791452850<K, V> =
   {var count : Nat__490723111; kvs : [var ?(K, V)]};
 type Internal__8484328<K, V> =
   {children : [var ?Node__46230540<K, V>]; data : Data__791452850<K, V>};
 type Leaf__809889148<K, V> = {data : Data__791452850<K, V>};
+type Map__158565046<K, V> = Map__297112838<K, V>;
+type Map__297112838<K, V> =
+  {var root : Node__46230540<K, V>; var size : Nat__490723111};
+type Map__605269027<K, V> = Map__158565046<K, V>;
 type Nat__490723111 = Nat__920180692;
 type Nat__920180692 = Nat;
 type Node__46230540<K, V> =
   {#internal : Internal__8484328<K, V>; #leaf : Leaf__809889148<K, V>};
+type OldTaskId__451790428 = Text;
+type OldTask__334677346 =
+  {
+    completed : Bool;
+    createdAt : Int;
+    description : Text;
+    id : OldTaskId__451790428;
+    owner : Principal;
+    title : Text;
+    updatedAt : Int
+  };
+type Priority__695711595 = {#High; #Low; #Medium};
 type TaskId__679737576 = Text;
 type Task__431803600 =
   {
+    category : ?Category__299622304;
     completed : Bool;
     createdAt : Int;
     description : Text;
     id : TaskId__679737576;
     owner : Principal;
+    priority : ?Priority__695711595;
     title : Text;
     updatedAt : Int
   };
-actor {
+actor ({
+  in taskStore : Map__605269027<OldTaskId__451790428, OldTask__334677346>
+}, {
   stable taskStore :
     {
       var root : Node__46230540<TaskId__679737576, Task__431803600>;
       var size : Nat__490723111
     }
-};
+}) ;

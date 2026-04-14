@@ -8,6 +8,22 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const Category = IDL.Variant({
+  'Work' : IDL.Null,
+  'Personal' : IDL.Null,
+  'Urgent' : IDL.Null,
+});
+export const Priority = IDL.Variant({
+  'Low' : IDL.Null,
+  'High' : IDL.Null,
+  'Medium' : IDL.Null,
+});
+export const CreateTaskInput = IDL.Record({
+  'title' : IDL.Text,
+  'description' : IDL.Text,
+  'category' : IDL.Opt(Category),
+  'priority' : IDL.Opt(Priority),
+});
 export const TaskId = IDL.Text;
 export const Task = IDL.Record({
   'id' : TaskId,
@@ -17,6 +33,8 @@ export const Task = IDL.Record({
   'completed' : IDL.Bool,
   'description' : IDL.Text,
   'updatedAt' : IDL.Int,
+  'category' : IDL.Opt(Category),
+  'priority' : IDL.Opt(Priority),
 });
 export const CreateTaskResult = IDL.Variant({ 'ok' : Task, 'err' : IDL.Text });
 export const DeleteTaskResult = IDL.Variant({
@@ -24,19 +42,41 @@ export const DeleteTaskResult = IDL.Variant({
   'err' : IDL.Text,
 });
 export const ToggleTaskResult = IDL.Variant({ 'ok' : Task, 'err' : IDL.Text });
+export const UpdateTaskInput = IDL.Record({
+  'title' : IDL.Text,
+  'description' : IDL.Text,
+  'category' : IDL.Opt(Category),
+  'priority' : IDL.Opt(Priority),
+});
 export const UpdateTaskResult = IDL.Variant({ 'ok' : Task, 'err' : IDL.Text });
 
 export const idlService = IDL.Service({
-  'createTask' : IDL.Func([IDL.Text, IDL.Text], [CreateTaskResult], []),
+  'createTask' : IDL.Func([CreateTaskInput], [CreateTaskResult], []),
   'deleteTask' : IDL.Func([TaskId], [DeleteTaskResult], []),
   'getTasks' : IDL.Func([], [IDL.Vec(Task)], ['query']),
   'toggleTask' : IDL.Func([TaskId], [ToggleTaskResult], []),
-  'updateTask' : IDL.Func([TaskId, IDL.Text, IDL.Text], [UpdateTaskResult], []),
+  'updateTask' : IDL.Func([TaskId, UpdateTaskInput], [UpdateTaskResult], []),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const Category = IDL.Variant({
+    'Work' : IDL.Null,
+    'Personal' : IDL.Null,
+    'Urgent' : IDL.Null,
+  });
+  const Priority = IDL.Variant({
+    'Low' : IDL.Null,
+    'High' : IDL.Null,
+    'Medium' : IDL.Null,
+  });
+  const CreateTaskInput = IDL.Record({
+    'title' : IDL.Text,
+    'description' : IDL.Text,
+    'category' : IDL.Opt(Category),
+    'priority' : IDL.Opt(Priority),
+  });
   const TaskId = IDL.Text;
   const Task = IDL.Record({
     'id' : TaskId,
@@ -46,22 +86,26 @@ export const idlFactory = ({ IDL }) => {
     'completed' : IDL.Bool,
     'description' : IDL.Text,
     'updatedAt' : IDL.Int,
+    'category' : IDL.Opt(Category),
+    'priority' : IDL.Opt(Priority),
   });
   const CreateTaskResult = IDL.Variant({ 'ok' : Task, 'err' : IDL.Text });
   const DeleteTaskResult = IDL.Variant({ 'ok' : IDL.Bool, 'err' : IDL.Text });
   const ToggleTaskResult = IDL.Variant({ 'ok' : Task, 'err' : IDL.Text });
+  const UpdateTaskInput = IDL.Record({
+    'title' : IDL.Text,
+    'description' : IDL.Text,
+    'category' : IDL.Opt(Category),
+    'priority' : IDL.Opt(Priority),
+  });
   const UpdateTaskResult = IDL.Variant({ 'ok' : Task, 'err' : IDL.Text });
   
   return IDL.Service({
-    'createTask' : IDL.Func([IDL.Text, IDL.Text], [CreateTaskResult], []),
+    'createTask' : IDL.Func([CreateTaskInput], [CreateTaskResult], []),
     'deleteTask' : IDL.Func([TaskId], [DeleteTaskResult], []),
     'getTasks' : IDL.Func([], [IDL.Vec(Task)], ['query']),
     'toggleTask' : IDL.Func([TaskId], [ToggleTaskResult], []),
-    'updateTask' : IDL.Func(
-        [TaskId, IDL.Text, IDL.Text],
-        [UpdateTaskResult],
-        [],
-      ),
+    'updateTask' : IDL.Func([TaskId, UpdateTaskInput], [UpdateTaskResult], []),
   });
 };
 

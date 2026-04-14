@@ -3,6 +3,13 @@ type UpdateTaskResult =
    err: text;
    ok: Task;
  };
+type UpdateTaskInput = 
+ record {
+   category: opt Category;
+   description: text;
+   priority: opt Priority;
+   title: text;
+ };
 type ToggleTaskResult = 
  variant {
    err: text;
@@ -11,13 +18,21 @@ type ToggleTaskResult =
 type TaskId = text;
 type Task = 
  record {
+   category: opt Category;
    completed: bool;
    createdAt: int;
    description: text;
    id: TaskId;
    owner: principal;
+   priority: opt Priority;
    title: text;
    updatedAt: int;
+ };
+type Priority = 
+ variant {
+   High;
+   Low;
+   Medium;
  };
 type DeleteTaskResult = 
  variant {
@@ -29,11 +44,23 @@ type CreateTaskResult =
    err: text;
    ok: Task;
  };
+type CreateTaskInput = 
+ record {
+   category: opt Category;
+   description: text;
+   priority: opt Priority;
+   title: text;
+ };
+type Category = 
+ variant {
+   Personal;
+   Urgent;
+   Work;
+ };
 service : {
-  createTask: (title: text, description: text) -> (CreateTaskResult);
+  createTask: (input: CreateTaskInput) -> (CreateTaskResult);
   deleteTask: (id: TaskId) -> (DeleteTaskResult);
   getTasks: () -> (vec Task) query;
   toggleTask: (id: TaskId) -> (ToggleTaskResult);
-  updateTask: (id: TaskId, title: text, description: text) ->
-   (UpdateTaskResult);
+  updateTask: (id: TaskId, input: UpdateTaskInput) -> (UpdateTaskResult);
 }

@@ -1,70 +1,77 @@
-# TaskFlow — Design Brief
+# TaskFlow — Premium Glassmorphism Design
 
 ## Purpose & Tone
-Refined task management UI. Users sign in via Internet Identity, manage personal todo lists with confidence. Tone: capable, trustworthy, minimal cognitive load.
+High-end productivity suite. Glassmorphic UI with deep dark foundation, premium depth effects, and category-based task organization. Tone: refined, capable, premium SaaS aesthetic.
 
 ## Differentiation
-Teal accent system (HSL 180°, cool focus) paired with warm neutral backgrounds creates personality without chaos. Serif display headings ground the interface with editorial confidence.
+Frosted glass cards with backdrop blur + semi-transparent backgrounds create luxury depth. Purple accent system paired with deep navy foundation. Priority color coding (red/amber/green) embedded in glassmorphic badges. Left sidebar navigation and top progress bar establish high-productivity UI patterns.
 
 ## Color Palette
 
-| Role | Light | Dark | OKLCH |
-|------|-------|------|-------|
-| Primary (Teal) | `0.52 0.176 183` | `0.72 0.165 183` | Trusted accent for buttons, active states, focus rings |
-| Background | `0.98 0 0` | `0.12 0 0` | Clean neutral, max contrast in dark mode |
-| Card | `0.99 0 0` | `0.16 0 0` | Subtle elevation via background shifts, not shadows |
-| Destructive (Red) | `0.55 0.22 25` | `0.65 0.19 22` | Delete/remove actions, muted in dark |
-| Muted | `0.92 0 0` | `0.25 0 0` | Disabled states, borders, non-interactive text |
+| Role | Light | Dark | OKLCH | Purpose |
+|------|-------|------|-------|---------|
+| Primary (Purple) | N/A | `0.68 0.18 280` | Active states, CTAs, progress bar, focus ring |
+| Background | N/A | `0.08 0 0` | Deep dark foundation for premium tone |
+| Card | N/A | `0.14 0.01 280` | Frosted glass base (semi-transparent), backdrop blur |
+| Accent (Purple) | N/A | `0.78 0.20 280` | Secondary highlights, accents |
+| Priority High (Red) | N/A | `0.63 0.24 25` | High-priority badge styling, destructive actions |
+| Priority Medium (Amber) | N/A | `0.68 0.19 60` | Medium-priority badge styling, warnings |
+| Priority Low (Green) | N/A | `0.72 0.18 120` | Low-priority badge styling, success states |
+| Foreground | N/A | `0.98 0 0` | Primary text on dark backgrounds |
+| Muted | N/A | `0.28 0.01 280` | Secondary text, disabled states |
+| Border | N/A | `0.26 0.01 280` | Glass card borders, subtle structure |
 
 ## Typography
-- **Display**: Fraunces (serif) — H1 (2rem), H2 (1.5rem). Adds editorial authority to headers.
-- **Body**: General Sans (humanist sans) — 1rem base, weight 400. Clean readability on all sizes.
-- **Mono**: JetBrains Mono — 0.875rem. Code/timestamp displays (if needed).
+- **Display**: Fraunces (serif) — H1 (2rem), H2 (1.5rem). Editorial authority, refined aesthetic.
+- **Body**: General Sans (humanist sans) — 1rem base, weight 400. Premium readability.
+- **Mono**: JetBrains Mono — 0.875rem. Task metadata, timestamps.
 
 ## Structural Zones
-| Zone | Light | Dark | Rationale |
-|------|-------|------|-----------|
-| Header | `bg-card border-b border-border` | `bg-card border-b border-border` | Card elevation with subtle border separation |
-| Main Content | `bg-background` | `bg-background` | Large neutral surface, task cards pop |
-| Task Card | `bg-card rounded-lg shadow-xs` | `bg-card rounded-lg shadow-xs` | Elevated via background + subtle shadow on hover |
-| Footer/Status | `bg-muted/10` | `bg-muted/30` | De-emphasized zone for secondary info |
+
+| Zone | Styling | Rationale |
+|------|---------|-----------|
+| Top Bar | `glass` (purple accent gradient progress bar) | Progress indicator, mission-critical status |
+| Sidebar | `glass rounded-lg` on nav items, `sidebar-item-active` for current category | Category filtering (Work, Personal, Urgent) |
+| Main Content | `bg-background` (deep dark) | Neutral foundation for card elevation |
+| Task Card | `glass glass-hover rounded-lg` with `priority-badge` overlay | Frosted glass appearance, priority color coding |
+| Footer | `bg-secondary/20` | De-emphasized secondary actions |
 
 ## Spacing & Rhythm
-- **Micro**: 4px (gap between inline elements)
-- **Small**: 8px (padding in buttons, task items)
-- **Base**: 16px (padding in cards, margin between sections)
+- **Micro**: 4px (intra-element gaps)
+- **Small**: 8px (button padding, badge padding)
+- **Base**: 16px (card padding, section margins)
 - **Large**: 24px (vertical rhythm between task groups)
-- **XL**: 32px (section margins in mobile view)
-
-Asymmetric rhythm: 16 → 24 → 32, not uniform grids. Avoids monotony.
+- **XL**: 32px (major section breaks)
 
 ## Component Patterns
-- **Buttons**: `bg-primary text-primary-foreground rounded-md px-4 py-2 transition-smooth hover:bg-primary/90`
-- **Task Items**: Checkbox + text + edit/delete icons. `task-card` utility includes hover elevation.
-- **Input Fields**: `bg-input border border-border rounded-md px-3 py-2 focus:ring-2 focus:ring-ring`
-- **Empty State**: Centered text, icon, call-to-action. Muted color until interaction.
+- **Glass Card**: `.glass .glass-hover` — `bg-card/40 backdrop-blur-md border border-white/10` + hover elevation
+- **Priority Badge**: `.priority-badge .priority-{high|medium|low}` — glassmorphic coloring with status color
+- **Sidebar Item**: `.sidebar-item .sidebar-item-active` — glass styling, highlights on selection
+- **Progress Bar**: `.progress-bar` with `.progress-fill` gradient — `bg-gradient-to-r from-primary to-accent`
+- **Button**: `bg-primary text-primary-foreground rounded-md px-4 py-2 transition-smooth hover:bg-primary/90`
 
 ## Motion Choreography
 - **Default Transition**: `all 0.3s cubic-bezier(0.4, 0, 0.2, 1)` (smooth easing)
-- **Task Add/Delete**: Fade + slide (100ms in, 150ms out)
-- **Checkbox Toggle**: Instant color change, no rotation/scale
-- **Hover**: Subtle shadow lift on cards, background shifts on buttons
+- **Task Add**: `animate-fade-in animate-slide-down` (100ms)
+- **Card Hover**: Subtle elevation via shadow + background opacity shift
+- **Progress Update**: Smooth width transition, no jarring jumps
 
 ## Elevation & Depth
-- **Layer 0**: Background (flat)
-- **Layer 1**: Cards + inputs (shadow-xs on hover)
-- **Layer 2**: Popovers/modals (shadow-md)
+- **Layer 0**: Background (deep dark, flat)
+- **Layer 1**: Glass cards + sidebar (backdrop blur, semi-transparent)
+- **Layer 2**: Modals + popovers (solid with shadow-glass)
 
-No gradients. Depth via layered backgrounds + strategic shadow on interaction.
+Depth achieved through layered transparency + backdrop blur, not multiple shadow layers.
 
 ## Constraints
-- Avoid rounded corners > 0.625rem (avoid pill-shaped buttons)
-- No shadows by default; shadow-xs on hover only
-- Color must be intentional—never use 80+ shade values
-- Accent teal used sparingly: active states, CTAs, focus rings, not general background
+- **Glass only in dark mode** — premium tone established by deep background + frosted foreground
+- Avoid rounded corners > 0.625rem (maintain refined, not playful, aesthetic)
+- **White/10 borders** — subtle structure, not high-contrast division
+- Priority colors used ONLY in badges, never as primary UI element
+- No full-page gradients; accent gradient only on progress bar
 
 ## Responsive
-Mobile-first: `sm:` (640px) for tablet, `md:` (768px) for desktop. Task list adapts from full-width cards (mobile) to compact rows (desktop).
+Mobile-first breakpoints: `sm:` (640px) tablet, `md:` (768px) desktop. Sidebar collapses on mobile, full-width task list. Progress bar always visible.
 
 ## Signature Detail
-Serif headings + sans body creates visual tension (modern + editorial). Teal accent as reserved emphasis—users learn "teal = interactive" without instruction.
+Frosted glass + deep dark foundation creates visual depth without visual noise. Purple accent reserved for interactive elements — users instantly recognize "purple = interactive". Priority system embedded in glassmorphic badges rather than color-blocking entire cards.

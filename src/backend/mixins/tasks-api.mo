@@ -4,10 +4,10 @@ import TaskLib "../lib/tasks";
 
 mixin (taskStore : TaskLib.TaskStore) {
   /// Create a new task for the caller
-  public shared ({ caller }) func createTask(title : Text, description : Text) : async Types.CreateTaskResult {
+  public shared ({ caller }) func createTask(input : Types.CreateTaskInput) : async Types.CreateTaskResult {
     let now = Time.now();
     let id = TaskLib.generateId(caller, now);
-    let task = TaskLib.newTask(id, caller, title, description, now);
+    let task = TaskLib.newTask(id, caller, input, now);
     TaskLib.insertTask(taskStore, task);
     #ok(task);
   };
@@ -17,10 +17,10 @@ mixin (taskStore : TaskLib.TaskStore) {
     TaskLib.getTasksByOwner(taskStore, caller);
   };
 
-  /// Update a task's title and description (caller must own the task)
-  public shared ({ caller }) func updateTask(id : Types.TaskId, title : Text, description : Text) : async Types.UpdateTaskResult {
+  /// Update a task's fields (caller must own the task)
+  public shared ({ caller }) func updateTask(id : Types.TaskId, input : Types.UpdateTaskInput) : async Types.UpdateTaskResult {
     let now = Time.now();
-    TaskLib.updateTask(taskStore, id, title, description, caller, now);
+    TaskLib.updateTask(taskStore, id, input, caller, now);
   };
 
   /// Toggle a task's completed status (caller must own the task)

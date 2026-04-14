@@ -27,9 +27,19 @@ export function useCreateTask() {
   const { actor } = useActor(createActor);
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ title, description }: CreateTaskInput) => {
+    mutationFn: async ({
+      title,
+      description,
+      category,
+      priority,
+    }: CreateTaskInput) => {
       if (!actor) throw new Error("Actor not available");
-      const result = await actor.createTask(title, description);
+      const result = await actor.createTask({
+        title,
+        description,
+        category,
+        priority,
+      });
       if (result.__kind__ === "err") throw new Error(result.err);
       return result.ok;
     },
@@ -43,9 +53,20 @@ export function useUpdateTask() {
   const { actor } = useActor(createActor);
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, title, description }: UpdateTaskInput) => {
+    mutationFn: async ({
+      id,
+      title,
+      description,
+      category,
+      priority,
+    }: UpdateTaskInput) => {
       if (!actor) throw new Error("Actor not available");
-      const result = await actor.updateTask(id, title, description);
+      const result = await actor.updateTask(id, {
+        title,
+        description,
+        category,
+        priority,
+      });
       if (result.__kind__ === "err") throw new Error(result.err);
       return result.ok;
     },

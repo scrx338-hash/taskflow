@@ -13,15 +13,17 @@ module {
   };
 
   /// Create a new Task record (does not persist)
-  public func newTask(id : Types.TaskId, caller : Principal, title : Text, description : Text, now : Int) : Types.Task {
+  public func newTask(id : Types.TaskId, caller : Principal, input : Types.CreateTaskInput, now : Int) : Types.Task {
     {
       id;
       owner = caller;
-      title;
-      description;
+      title = input.title;
+      description = input.description;
       completed = false;
       createdAt = now;
       updatedAt = now;
+      category = input.category;
+      priority = input.priority;
     };
   };
 
@@ -49,15 +51,22 @@ module {
     };
   };
 
-  /// Update title and description of a task owned by caller
-  public func updateTask(store : TaskStore, id : Types.TaskId, title : Text, description : Text, caller : Principal, now : Int) : Types.UpdateTaskResult {
+  /// Update a task owned by caller using UpdateTaskInput
+  public func updateTask(store : TaskStore, id : Types.TaskId, input : Types.UpdateTaskInput, caller : Principal, now : Int) : Types.UpdateTaskResult {
     switch (store.get(id)) {
       case null { #err("Task not found") };
       case (?task) {
         if (not Principal.equal(task.owner, caller)) {
           return #err("Not authorized");
         };
-        let updated : Types.Task = { task with title; description; updatedAt = now };
+        let updated : Types.Task = {
+          task with
+          title = input.title;
+          description = input.description;
+          category = input.category;
+          priority = input.priority;
+          updatedAt = now;
+        };
         store.add(id, updated);
         #ok(updated);
       };

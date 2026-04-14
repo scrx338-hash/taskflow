@@ -30,6 +30,7 @@ import {
   useToggleTask,
   useUpdateTask,
 } from "../hooks/use-tasks";
+import { Category, Priority } from "../types/task";
 import type { Task } from "../types/task";
 
 type FilterType = "all" | "active" | "done";
@@ -37,16 +38,118 @@ type FilterType = "all" | "active" | "done";
 interface TaskFormValues {
   title: string;
   description: string;
+  category?: Category;
+  priority?: Priority;
+}
+
+/* ─── Priority badge config ─── */
+const PRIORITY_CONFIG: Record<Priority, { label: string; className: string }> =
+  {
+    [Priority.High]: {
+      label: "High",
+      className:
+        "bg-red-500/20 border-red-500/30 text-red-400 backdrop-blur-sm",
+    },
+    [Priority.Medium]: {
+      label: "Medium",
+      className:
+        "bg-amber-500/20 border-amber-500/30 text-amber-400 backdrop-blur-sm",
+    },
+    [Priority.Low]: {
+      label: "Low",
+      className:
+        "bg-green-500/20 border-green-500/30 text-green-400 backdrop-blur-sm",
+    },
+  };
+
+const CATEGORY_CONFIG: Record<Category, { label: string; className: string }> =
+  {
+    [Category.Work]: {
+      label: "Work",
+      className: "bg-blue-500/15 border-blue-500/25 text-blue-400",
+    },
+    [Category.Personal]: {
+      label: "Personal",
+      className: "bg-purple-500/15 border-purple-500/25 text-purple-400",
+    },
+    [Category.Urgent]: {
+      label: "Urgent",
+      className: "bg-orange-500/15 border-orange-500/25 text-orange-400",
+    },
+  };
+
+/* ─── Priority Selector ─── */
+function PrioritySelector({
+  value,
+  onChange,
+}: {
+  value?: Priority;
+  onChange: (p: Priority) => void;
+}) {
+  return (
+    <div className="flex gap-2">
+      {[Priority.High, Priority.Medium, Priority.Low].map((p) => {
+        const cfg = PRIORITY_CONFIG[p];
+        const isActive = value === p;
+        return (
+          <button
+            key={p}
+            type="button"
+            onClick={() => onChange(p)}
+            className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-semibold transition-smooth focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+              isActive
+                ? `${cfg.className} ring-1 ring-offset-0 scale-[1.03]`
+                : "border-white/10 text-muted-foreground hover:border-white/20 bg-white/5"
+            }`}
+          >
+            {cfg.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─── Category Selector ─── */
+function CategorySelector({
+  value,
+  onChange,
+}: {
+  value?: Category;
+  onChange: (c: Category | undefined) => void;
+}) {
+  return (
+    <div className="flex gap-2 flex-wrap">
+      {[Category.Work, Category.Personal, Category.Urgent].map((c) => {
+        const cfg = CATEGORY_CONFIG[c];
+        const isActive = value === c;
+        return (
+          <button
+            key={c}
+            type="button"
+            onClick={() => onChange(isActive ? undefined : c)}
+            className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-smooth focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+              isActive
+                ? `${cfg.className} ring-1`
+                : "border-white/10 text-muted-foreground hover:border-white/20 bg-white/5"
+            }`}
+          >
+            {cfg.label}
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 /* ─── Task Skeleton ─── */
 function TaskSkeleton() {
   return (
-    <div className="bg-card border border-border rounded-lg p-4 flex items-start gap-3">
-      <Skeleton className="h-5 w-5 rounded mt-0.5 shrink-0" />
+    <div className="glass rounded-xl p-4 flex items-start gap-3">
+      <Skeleton className="h-5 w-5 rounded mt-0.5 shrink-0 bg-white/10" />
       <div className="flex-1 space-y-2">
-        <Skeleton className="h-4 w-3/4 rounded" />
-        <Skeleton className="h-3 w-1/2 rounded" />
+        <Skeleton className="h-4 w-3/4 rounded bg-white/10" />
+        <Skeleton className="h-3 w-1/2 rounded bg-white/5" />
       </div>
     </div>
   );
@@ -55,21 +158,22 @@ function TaskSkeleton() {
 /* ─── Task Card ─── */
 function TaskCard({
   task,
+  index,
   onEdit,
   onDelete,
 }: {
   task: Task;
+  index: number;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
 }) {
   const toggle = useToggleTask();
+  const priorityCfg = task.priority ? PRIORITY_CONFIG[task.priority] : null;
+  const categoryCfg = task.category ? CATEGORY_CONFIG[task.category] : null;
 
   const dateLabel = new Date(
     Number(task.createdAt) / 1_000_000,
-  ).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
+  ).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
   return (
     <motion.div
@@ -77,21 +181,38 @@ function TaskCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97, y: -4 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
-      data-ocid="task-card"
-      className="task-card group flex items-start gap-3"
+      transition={{ duration: 0.22, ease: "easeOut" }}
+      data-ocid={`task.item.${index + 1}`}
+      className={`group relative rounded-xl border backdrop-blur-md p-4 flex items-start gap-3 transition-smooth hover:border-white/20 hover:shadow-lg hover:shadow-black/20 ${
+        task.completed
+          ? "bg-white/[0.02] border-white/5"
+          : "bg-white/[0.06] border-white/10 shadow-md shadow-black/10"
+      }`}
     >
+      {/* Priority accent strip */}
+      {task.priority && !task.completed && (
+        <div
+          className={`absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full ${
+            task.priority === Priority.High
+              ? "bg-red-400/70"
+              : task.priority === Priority.Medium
+                ? "bg-amber-400/70"
+                : "bg-green-400/70"
+          }`}
+        />
+      )}
+
       {/* Checkbox */}
       <button
         type="button"
-        data-ocid="task-toggle"
+        data-ocid={`task.toggle.${index + 1}`}
         aria-label={task.completed ? "Mark incomplete" : "Mark complete"}
         onClick={() => toggle.mutate(task.id)}
         disabled={toggle.isPending}
-        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-smooth focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-smooth focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
           task.completed
             ? "bg-primary border-primary"
-            : "border-border hover:border-primary"
+            : "border-white/20 hover:border-primary bg-white/5"
         }`}
       >
         {task.completed ? (
@@ -103,22 +224,43 @@ function TaskCard({
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <p
-          className={`text-sm font-medium leading-snug break-words ${
-            task.completed ? "task-completed" : "text-foreground"
-          }`}
-        >
-          {task.title}
-        </p>
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <p
+            className={`text-sm font-medium leading-snug break-words ${
+              task.completed
+                ? "line-through text-muted-foreground/60"
+                : "text-foreground"
+            }`}
+          >
+            {task.title}
+          </p>
+          {/* Priority badge - prominent placement */}
+          {priorityCfg && (
+            <span
+              className={`shrink-0 inline-flex items-center rounded-lg border px-2.5 py-0.5 text-[11px] font-semibold ${priorityCfg.className}`}
+            >
+              {priorityCfg.label}
+            </span>
+          )}
+        </div>
+
         {task.description && (
-          <p className="mt-1 text-xs text-muted-foreground line-clamp-2 break-words leading-relaxed">
+          <p className="text-xs text-muted-foreground/70 line-clamp-2 break-words leading-relaxed mb-2">
             {task.description}
           </p>
         )}
-        <div className="mt-1.5 flex items-center gap-2">
-          <span className="text-[10px] text-muted-foreground/60">
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[10px] text-muted-foreground/50">
             {dateLabel}
           </span>
+          {categoryCfg && (
+            <span
+              className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-medium ${categoryCfg.className}`}
+            >
+              {categoryCfg.label}
+            </span>
+          )}
           {task.completed && (
             <Badge
               variant="secondary"
@@ -135,9 +277,9 @@ function TaskCard({
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7 hover:text-primary"
+          className="h-7 w-7 hover:text-primary hover:bg-white/10"
           aria-label="Edit task"
-          data-ocid="task-edit-btn"
+          data-ocid={`task.edit_button.${index + 1}`}
           onClick={() => onEdit(task)}
         >
           <Pencil className="h-3.5 w-3.5" />
@@ -145,9 +287,9 @@ function TaskCard({
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7 hover:text-destructive"
+          className="h-7 w-7 hover:text-destructive hover:bg-destructive/10"
           aria-label="Delete task"
-          data-ocid="task-delete-btn"
+          data-ocid={`task.delete_button.${index + 1}`}
           onClick={() => onDelete(task)}
         >
           <Trash2 className="h-3.5 w-3.5" />
@@ -170,7 +312,11 @@ function QuickAddForm({ onOpen }: { onOpen: () => void }) {
       return;
     }
     try {
-      await createTask.mutateAsync({ title: trimmed, description: "" });
+      await createTask.mutateAsync({
+        title: trimmed,
+        description: "",
+        priority: Priority.Medium,
+      });
       setQuickTitle("");
       toast.success("Task added");
     } catch {
@@ -179,23 +325,26 @@ function QuickAddForm({ onOpen }: { onOpen: () => void }) {
   };
 
   return (
-    <div className="flex gap-2" data-ocid="quick-add-form">
+    <div
+      className="glass rounded-xl p-3 flex gap-2 border border-white/10"
+      data-ocid="quick-add-form"
+    >
       <Input
         ref={inputRef}
-        data-ocid="quick-add-input"
-        placeholder="Add a task…"
+        data-ocid="task.input"
+        placeholder="Quick add a task…"
         value={quickTitle}
         onChange={(e) => setQuickTitle(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter") void handleQuickAdd();
         }}
-        className="flex-1 bg-card border-border"
+        className="flex-1 bg-white/5 border-white/10 focus:border-primary/50 placeholder:text-muted-foreground/50 text-sm"
       />
       <Button
         onClick={() => void handleQuickAdd()}
         disabled={!quickTitle.trim() || createTask.isPending}
         className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-md shadow-primary/20 shrink-0"
-        data-ocid="quick-add-btn"
+        data-ocid="task.add_button"
       >
         {createTask.isPending ? (
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
@@ -207,11 +356,11 @@ function QuickAddForm({ onOpen }: { onOpen: () => void }) {
       <Button
         variant="outline"
         size="icon"
-        className="shrink-0 border-dashed"
-        aria-label="Add with description"
+        className="shrink-0 border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20"
+        aria-label="Add task with details"
         onClick={onOpen}
-        data-ocid="add-with-desc-btn"
-        title="Add task with description"
+        data-ocid="task.open_modal_button"
+        title="Add task with details"
       >
         <Pencil className="h-4 w-4" />
       </Button>
@@ -219,52 +368,62 @@ function QuickAddForm({ onOpen }: { onOpen: () => void }) {
   );
 }
 
-/* ─── Stats Bar ─── */
-function StatsBar({
-  active,
+/* ─── Progress Bar ─── */
+function ProgressBar({
   done,
   total,
-}: { active: number; done: number; total: number }) {
+}: {
+  done: number;
+  total: number;
+}) {
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  const isAllDone = total > 0 && done === total;
 
   return (
     <div
-      className="bg-card border border-border rounded-xl p-4 space-y-3"
-      data-ocid="stats-bar"
+      className="glass rounded-xl p-4 border border-white/10"
+      data-ocid="progress-bar"
     >
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-muted-foreground">
-          {done === total && total > 0 ? (
-            <span className="flex items-center gap-1.5 text-primary font-medium">
-              <CheckCircle2 className="h-4 w-4" />
-              All done! Great work.
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+            Task Completion
+          </span>
+          {isAllDone && (
+            <CheckCircle2 className="h-3.5 w-3.5 text-primary animate-pulse" />
+          )}
+        </div>
+        <span className="font-display text-2xl font-semibold text-foreground tabular-nums">
+          {pct}%
+        </span>
+      </div>
+
+      {/* Gradient track */}
+      <div className="h-2.5 bg-white/5 rounded-full overflow-hidden border border-white/10">
+        <motion.div
+          className="h-full rounded-full bg-gradient-to-r from-primary via-violet-400 to-accent"
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        />
+      </div>
+
+      <div className="flex items-center justify-between mt-2.5">
+        <p className="text-xs text-muted-foreground">
+          {isAllDone ? (
+            <span className="text-primary font-medium">
+              All {total} tasks complete 🎉
             </span>
           ) : (
             <>
-              <span className="font-semibold text-foreground">{done}</span>
-              <span className="text-muted-foreground"> of </span>
-              <span className="font-semibold text-foreground">{total}</span>
-              <span className="text-muted-foreground"> completed</span>
+              <span className="font-semibold text-foreground">{done}</span> of{" "}
+              <span className="font-semibold text-foreground">{total}</span>{" "}
+              tasks complete
             </>
           )}
-        </span>
-        <span className="text-xs text-muted-foreground font-mono">{pct}%</span>
-      </div>
-      {/* Progress bar */}
-      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-        <motion.div
-          className="h-full bg-primary rounded-full"
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-        />
-      </div>
-      <div className="flex gap-4 text-xs text-muted-foreground">
-        <span>
-          <span className="font-semibold text-foreground">{active}</span> active
-        </span>
-        <span>
-          <span className="font-semibold text-foreground">{done}</span> done
+        </p>
+        <span className="text-xs text-muted-foreground/60">
+          {total - done} remaining
         </span>
       </div>
     </div>
@@ -289,8 +448,8 @@ function FilterTabs({
 
   return (
     <div
-      className="flex gap-1 bg-muted/50 rounded-lg p-1 border border-border/50"
-      data-ocid="task-filter-tabs"
+      className="flex gap-1 bg-white/5 backdrop-blur-sm rounded-lg p-1 border border-white/10"
+      data-ocid="task.filter.tab"
     >
       {tabs.map(({ key, label }) => (
         <button
@@ -300,16 +459,16 @@ function FilterTabs({
           data-ocid={`filter-${key}`}
           className={`flex-1 rounded-md py-1.5 text-xs font-medium transition-smooth focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring flex items-center justify-center gap-1.5 ${
             filter === key
-              ? "bg-card shadow-xs text-foreground border border-border"
+              ? "bg-white/10 backdrop-blur-sm shadow-sm text-foreground border border-white/15"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
           {label}
           <span
-            className={`tabular-nums ${
+            className={`tabular-nums text-[10px] ${
               filter === key
                 ? "text-primary font-semibold"
-                : "text-muted-foreground/60"
+                : "text-muted-foreground/50"
             }`}
           >
             {counts[key]}
@@ -344,11 +503,15 @@ function TaskDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent
+        className="bg-card/80 backdrop-blur-xl border-white/15 shadow-2xl shadow-black/40"
+        data-ocid={`${ocidPrefix}.dialog`}
+      >
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle className="font-display text-lg">{title}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-1">
+          {/* Title */}
           <div className="space-y-1.5">
             <label
               htmlFor={`${ocidPrefix}-title`}
@@ -358,7 +521,7 @@ function TaskDialog({
             </label>
             <Input
               id={`${ocidPrefix}-title`}
-              data-ocid={`${ocidPrefix}-title-input`}
+              data-ocid={`${ocidPrefix}.input`}
               placeholder="What needs to be done?"
               value={form.title}
               onChange={(e) => onChange({ ...form, title: e.target.value })}
@@ -366,9 +529,11 @@ function TaskDialog({
                 if (e.key === "Enter" && form.title.trim()) onSubmit();
               }}
               autoFocus
-              className="bg-background"
+              className="bg-white/5 border-white/15 focus:border-primary/50"
             />
           </div>
+
+          {/* Description */}
           <div className="space-y-1.5">
             <label
               htmlFor={`${ocidPrefix}-desc`}
@@ -381,22 +546,47 @@ function TaskDialog({
             </label>
             <Textarea
               id={`${ocidPrefix}-desc`}
-              data-ocid={`${ocidPrefix}-desc-input`}
+              data-ocid={`${ocidPrefix}.textarea`}
               placeholder="Add some details…"
               value={form.description}
               onChange={(e) =>
                 onChange({ ...form, description: e.target.value })
               }
               rows={3}
-              className="bg-background resize-none"
+              className="bg-white/5 border-white/15 focus:border-primary/50 resize-none"
+            />
+          </div>
+
+          {/* Priority */}
+          <div className="space-y-1.5">
+            <p className="text-sm font-medium text-foreground">Priority</p>
+            <PrioritySelector
+              value={form.priority}
+              onChange={(p) => onChange({ ...form, priority: p })}
+            />
+          </div>
+
+          {/* Category */}
+          <div className="space-y-1.5">
+            <p className="text-sm font-medium text-foreground">
+              Category{" "}
+              <span className="text-muted-foreground font-normal">
+                (optional)
+              </span>
+            </p>
+            <CategorySelector
+              value={form.category}
+              onChange={(c) => onChange({ ...form, category: c })}
             />
           </div>
         </div>
+
         <DialogFooter>
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            data-ocid={`${ocidPrefix}-cancel-btn`}
+            className="border-white/15 hover:bg-white/5"
+            data-ocid={`${ocidPrefix}.cancel_button`}
           >
             Cancel
           </Button>
@@ -404,7 +594,7 @@ function TaskDialog({
             className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-md shadow-primary/20"
             onClick={onSubmit}
             disabled={!form.title.trim() || isPending}
-            data-ocid={`${ocidPrefix}-submit-btn`}
+            data-ocid={`${ocidPrefix}.submit_button`}
           >
             {isPending ? (
               <>
@@ -422,7 +612,11 @@ function TaskDialog({
 }
 
 /* ─── Main Page ─── */
-export default function TasksPage() {
+export default function TasksPage({
+  activeCategory,
+}: {
+  activeCategory: string;
+}) {
   const { data: tasks, isLoading } = useTasks();
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
@@ -434,17 +628,23 @@ export default function TasksPage() {
   const [form, setForm] = useState<TaskFormValues>({
     title: "",
     description: "",
+    priority: Priority.Medium,
   });
   const [filter, setFilter] = useState<FilterType>("all");
 
   const openCreate = () => {
-    setForm({ title: "", description: "" });
+    setForm({ title: "", description: "", priority: Priority.Medium });
     setIsCreateOpen(true);
   };
 
   const openEdit = (task: Task) => {
     setEditingTask(task);
-    setForm({ title: task.title, description: task.description });
+    setForm({
+      title: task.title,
+      description: task.description,
+      category: task.category,
+      priority: task.priority,
+    });
   };
 
   const handleCreate = async () => {
@@ -453,9 +653,11 @@ export default function TasksPage() {
       await createTask.mutateAsync({
         title: form.title.trim(),
         description: form.description.trim(),
+        category: form.category,
+        priority: form.priority ?? Priority.Medium,
       });
       setIsCreateOpen(false);
-      setForm({ title: "", description: "" });
+      setForm({ title: "", description: "", priority: Priority.Medium });
       toast.success("Task created");
     } catch {
       toast.error("Failed to create task");
@@ -469,6 +671,8 @@ export default function TasksPage() {
         id: editingTask.id,
         title: form.title.trim(),
         description: form.description.trim(),
+        category: form.category,
+        priority: form.priority,
       });
       setEditingTask(null);
       toast.success("Task updated");
@@ -489,10 +693,15 @@ export default function TasksPage() {
   };
 
   const allTasks = tasks ?? [];
-  const activeCnt = allTasks.filter((t) => !t.completed).length;
-  const doneCnt = allTasks.filter((t) => t.completed).length;
+  const categoryFiltered =
+    activeCategory === "all"
+      ? allTasks
+      : allTasks.filter((t) => t.category === activeCategory);
 
-  const filteredTasks = allTasks.filter((t) => {
+  const activeCnt = categoryFiltered.filter((t) => !t.completed).length;
+  const doneCnt = categoryFiltered.filter((t) => t.completed).length;
+
+  const filteredTasks = categoryFiltered.filter((t) => {
     if (filter === "active") return !t.completed;
     if (filter === "done") return t.completed;
     return true;
@@ -505,6 +714,8 @@ export default function TasksPage() {
   });
   const dayName = today.toLocaleDateString("en-US", { weekday: "long" });
 
+  const categoryLabel = activeCategory === "all" ? "My Day" : activeCategory;
+
   return (
     <div className="space-y-5">
       {/* Date heading */}
@@ -514,59 +725,72 @@ export default function TasksPage() {
         transition={{ duration: 0.35 }}
       >
         <p className="text-xs text-muted-foreground uppercase tracking-widest mb-0.5">
-          {dayName}
+          {dayName} · {dateHeading}
         </p>
         <h1 className="font-display text-2xl font-semibold text-foreground tracking-tight">
-          {dateHeading}
+          {categoryLabel}
         </h1>
       </motion.div>
 
-      {/* Quick add form */}
+      {/* Progress bar (only when there are tasks) */}
+      {!isLoading && allTasks.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05, duration: 0.35 }}
+        >
+          <ProgressBar done={doneCnt} total={categoryFiltered.length} />
+        </motion.div>
+      )}
+
+      {/* Quick add */}
       <motion.div
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.08, duration: 0.35 }}
+        transition={{ delay: 0.1, duration: 0.35 }}
       >
         <QuickAddForm onOpen={openCreate} />
       </motion.div>
 
       {/* Loading state */}
       {isLoading && (
-        <div className="space-y-2" data-ocid="tasks-loading">
+        <div className="space-y-2.5" data-ocid="tasks.loading_state">
           {(["s1", "s2", "s3"] as const).map((k) => (
             <TaskSkeleton key={k} />
           ))}
         </div>
       )}
 
-      {/* Stats + filter (only when tasks exist) */}
-      {!isLoading && allTasks.length > 0 && (
+      {/* Filter tabs (only when tasks exist) */}
+      {!isLoading && categoryFiltered.length > 0 && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.12, duration: 0.35 }}
-          className="space-y-3"
+          transition={{ delay: 0.15, duration: 0.35 }}
         >
-          <StatsBar active={activeCnt} done={doneCnt} total={allTasks.length} />
           <FilterTabs
             filter={filter}
             onChange={setFilter}
-            counts={{ all: allTasks.length, active: activeCnt, done: doneCnt }}
+            counts={{
+              all: categoryFiltered.length,
+              active: activeCnt,
+              done: doneCnt,
+            }}
           />
         </motion.div>
       )}
 
       {/* Task list */}
       {!isLoading && (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           <AnimatePresence mode="popLayout">
-            {/* Filter empty state (tasks exist but filter has none) */}
-            {filteredTasks.length === 0 && allTasks.length > 0 && (
+            {filteredTasks.length === 0 && categoryFiltered.length > 0 && (
               <motion.div
                 key="filter-empty"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                data-ocid="tasks.empty_state"
               >
                 <EmptyState
                   title={
@@ -592,6 +816,7 @@ export default function TasksPage() {
               >
                 <TaskCard
                   task={task}
+                  index={index}
                   onEdit={openEdit}
                   onDelete={setDeletingTask}
                 />
@@ -605,6 +830,7 @@ export default function TasksPage() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15, duration: 0.35 }}
+              data-ocid="tasks.empty_state"
             >
               <EmptyState
                 icon={<ClipboardList className="h-7 w-7" />}
@@ -615,10 +841,37 @@ export default function TasksPage() {
                     size="sm"
                     className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-md shadow-primary/20"
                     onClick={openCreate}
-                    data-ocid="empty-add-task-btn"
+                    data-ocid="task.add_button"
                   >
                     <Plus className="h-4 w-4" />
                     Add your first task
+                  </Button>
+                }
+              />
+            </motion.div>
+          )}
+
+          {/* Category empty state */}
+          {allTasks.length > 0 && categoryFiltered.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              data-ocid="tasks.empty_state"
+            >
+              <EmptyState
+                icon={<ClipboardList className="h-7 w-7" />}
+                title={`No ${categoryLabel} tasks`}
+                description={`Add a task and assign it to ${categoryLabel} to see it here.`}
+                action={
+                  <Button
+                    size="sm"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-md shadow-primary/20"
+                    onClick={openCreate}
+                    data-ocid="task.add_button"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add {categoryLabel} task
                   </Button>
                 }
               />
@@ -631,10 +884,10 @@ export default function TasksPage() {
       <div className="fixed bottom-6 right-4 sm:right-6 z-30">
         <Button
           size="icon"
-          className="h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:bg-primary/90 hover:scale-105 active:scale-95 transition-smooth"
+          className="h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:bg-primary/90 hover:scale-105 active:scale-95 transition-smooth border border-primary/30"
           onClick={openCreate}
           aria-label="Add task"
-          data-ocid="fab-add-task"
+          data-ocid="fab.primary_button"
         >
           <Plus className="h-5 w-5" />
         </Button>
@@ -647,7 +900,7 @@ export default function TasksPage() {
       <TaskDialog
         open={isCreateOpen}
         onOpenChange={setIsCreateOpen}
-        title="New task"
+        title="New Task"
         form={form}
         onChange={setForm}
         onSubmit={() => void handleCreate()}
@@ -660,7 +913,7 @@ export default function TasksPage() {
       <TaskDialog
         open={!!editingTask}
         onOpenChange={(o) => !o && setEditingTask(null)}
-        title="Edit task"
+        title="Edit Task"
         form={form}
         onChange={setForm}
         onSubmit={() => void handleUpdate()}
@@ -674,9 +927,14 @@ export default function TasksPage() {
         open={!!deletingTask}
         onOpenChange={(o) => !o && setDeletingTask(null)}
       >
-        <DialogContent>
+        <DialogContent
+          className="bg-card/80 backdrop-blur-xl border-white/15 shadow-2xl shadow-black/40"
+          data-ocid="delete.dialog"
+        >
           <DialogHeader>
-            <DialogTitle>Delete task?</DialogTitle>
+            <DialogTitle className="font-display text-lg">
+              Delete task?
+            </DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground py-1">
             <span className="font-medium text-foreground">
@@ -688,7 +946,8 @@ export default function TasksPage() {
             <Button
               variant="outline"
               onClick={() => setDeletingTask(null)}
-              data-ocid="delete-cancel-btn"
+              className="border-white/15 hover:bg-white/5"
+              data-ocid="delete.cancel_button"
             >
               Cancel
             </Button>
@@ -696,7 +955,7 @@ export default function TasksPage() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-semibold"
               onClick={() => void handleDelete()}
               disabled={deleteTask.isPending}
-              data-ocid="delete-confirm-btn"
+              data-ocid="delete.confirm_button"
             >
               {deleteTask.isPending ? "Deleting…" : "Delete task"}
             </Button>

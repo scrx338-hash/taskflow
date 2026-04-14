@@ -89,36 +89,6 @@ export class ExternalBlob {
         return this;
     }
 }
-export interface Task {
-    id: TaskId;
-    title: string;
-    owner: Principal;
-    createdAt: bigint;
-    completed: boolean;
-    description: string;
-    updatedAt: bigint;
-}
-export type ToggleTaskResult = {
-    __kind__: "ok";
-    ok: Task;
-} | {
-    __kind__: "err";
-    err: string;
-};
-export type UpdateTaskResult = {
-    __kind__: "ok";
-    ok: Task;
-} | {
-    __kind__: "err";
-    err: string;
-};
-export type DeleteTaskResult = {
-    __kind__: "ok";
-    ok: boolean;
-} | {
-    __kind__: "err";
-    err: string;
-};
 export type TaskId = string;
 export type CreateTaskResult = {
     __kind__: "ok";
@@ -127,106 +97,226 @@ export type CreateTaskResult = {
     __kind__: "err";
     err: string;
 };
+export interface Task {
+    id: TaskId;
+    title: string;
+    owner: Principal;
+    createdAt: bigint;
+    completed: boolean;
+    description: string;
+    updatedAt: bigint;
+    category?: Category;
+    priority?: Priority;
+}
+export type ToggleTaskResult = {
+    __kind__: "ok";
+    ok: Task;
+} | {
+    __kind__: "err";
+    err: string;
+};
+export interface CreateTaskInput {
+    title: string;
+    description: string;
+    category?: Category;
+    priority?: Priority;
+}
+export type UpdateTaskResult = {
+    __kind__: "ok";
+    ok: Task;
+} | {
+    __kind__: "err";
+    err: string;
+};
+export interface UpdateTaskInput {
+    title: string;
+    description: string;
+    category?: Category;
+    priority?: Priority;
+}
+export type DeleteTaskResult = {
+    __kind__: "ok";
+    ok: boolean;
+} | {
+    __kind__: "err";
+    err: string;
+};
+export enum Category {
+    Work = "Work",
+    Personal = "Personal",
+    Urgent = "Urgent"
+}
+export enum Priority {
+    Low = "Low",
+    High = "High",
+    Medium = "Medium"
+}
 export interface backendInterface {
-    createTask(title: string, description: string): Promise<CreateTaskResult>;
+    createTask(input: CreateTaskInput): Promise<CreateTaskResult>;
     deleteTask(id: TaskId): Promise<DeleteTaskResult>;
     getTasks(): Promise<Array<Task>>;
     toggleTask(id: TaskId): Promise<ToggleTaskResult>;
-    updateTask(id: TaskId, title: string, description: string): Promise<UpdateTaskResult>;
+    updateTask(id: TaskId, input: UpdateTaskInput): Promise<UpdateTaskResult>;
 }
-import type { CreateTaskResult as _CreateTaskResult, DeleteTaskResult as _DeleteTaskResult, Task as _Task, ToggleTaskResult as _ToggleTaskResult, UpdateTaskResult as _UpdateTaskResult } from "./declarations/backend.did.d.ts";
+import type { Category as _Category, CreateTaskInput as _CreateTaskInput, CreateTaskResult as _CreateTaskResult, DeleteTaskResult as _DeleteTaskResult, Priority as _Priority, Task as _Task, TaskId as _TaskId, ToggleTaskResult as _ToggleTaskResult, UpdateTaskInput as _UpdateTaskInput, UpdateTaskResult as _UpdateTaskResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
-    async createTask(arg0: string, arg1: string): Promise<CreateTaskResult> {
+    async createTask(arg0: CreateTaskInput): Promise<CreateTaskResult> {
         if (this.processError) {
             try {
-                const result = await this.actor.createTask(arg0, arg1);
-                return from_candid_CreateTaskResult_n1(this._uploadFile, this._downloadFile, result);
+                const result = await this.actor.createTask(to_candid_CreateTaskInput_n1(this._uploadFile, this._downloadFile, arg0));
+                return from_candid_CreateTaskResult_n7(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.createTask(arg0, arg1);
-            return from_candid_CreateTaskResult_n1(this._uploadFile, this._downloadFile, result);
+            const result = await this.actor.createTask(to_candid_CreateTaskInput_n1(this._uploadFile, this._downloadFile, arg0));
+            return from_candid_CreateTaskResult_n7(this._uploadFile, this._downloadFile, result);
         }
     }
     async deleteTask(arg0: TaskId): Promise<DeleteTaskResult> {
         if (this.processError) {
             try {
                 const result = await this.actor.deleteTask(arg0);
-                return from_candid_DeleteTaskResult_n3(this._uploadFile, this._downloadFile, result);
+                return from_candid_DeleteTaskResult_n17(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.deleteTask(arg0);
-            return from_candid_DeleteTaskResult_n3(this._uploadFile, this._downloadFile, result);
+            return from_candid_DeleteTaskResult_n17(this._uploadFile, this._downloadFile, result);
         }
     }
     async getTasks(): Promise<Array<Task>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getTasks();
-                return result;
+                return from_candid_vec_n19(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getTasks();
-            return result;
+            return from_candid_vec_n19(this._uploadFile, this._downloadFile, result);
         }
     }
     async toggleTask(arg0: TaskId): Promise<ToggleTaskResult> {
         if (this.processError) {
             try {
                 const result = await this.actor.toggleTask(arg0);
-                return from_candid_ToggleTaskResult_n5(this._uploadFile, this._downloadFile, result);
+                return from_candid_ToggleTaskResult_n20(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.toggleTask(arg0);
-            return from_candid_ToggleTaskResult_n5(this._uploadFile, this._downloadFile, result);
+            return from_candid_ToggleTaskResult_n20(this._uploadFile, this._downloadFile, result);
         }
     }
-    async updateTask(arg0: TaskId, arg1: string, arg2: string): Promise<UpdateTaskResult> {
+    async updateTask(arg0: TaskId, arg1: UpdateTaskInput): Promise<UpdateTaskResult> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateTask(arg0, arg1, arg2);
-                return from_candid_UpdateTaskResult_n6(this._uploadFile, this._downloadFile, result);
+                const result = await this.actor.updateTask(arg0, to_candid_UpdateTaskInput_n21(this._uploadFile, this._downloadFile, arg1));
+                return from_candid_UpdateTaskResult_n22(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateTask(arg0, arg1, arg2);
-            return from_candid_UpdateTaskResult_n6(this._uploadFile, this._downloadFile, result);
+            const result = await this.actor.updateTask(arg0, to_candid_UpdateTaskInput_n21(this._uploadFile, this._downloadFile, arg1));
+            return from_candid_UpdateTaskResult_n22(this._uploadFile, this._downloadFile, result);
         }
     }
 }
-function from_candid_CreateTaskResult_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CreateTaskResult): CreateTaskResult {
-    return from_candid_variant_n2(_uploadFile, _downloadFile, value);
+function from_candid_Category_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Category): Category {
+    return from_candid_variant_n13(_uploadFile, _downloadFile, value);
 }
-function from_candid_DeleteTaskResult_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _DeleteTaskResult): DeleteTaskResult {
-    return from_candid_variant_n4(_uploadFile, _downloadFile, value);
+function from_candid_CreateTaskResult_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CreateTaskResult): CreateTaskResult {
+    return from_candid_variant_n8(_uploadFile, _downloadFile, value);
 }
-function from_candid_ToggleTaskResult_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ToggleTaskResult): ToggleTaskResult {
-    return from_candid_variant_n2(_uploadFile, _downloadFile, value);
+function from_candid_DeleteTaskResult_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _DeleteTaskResult): DeleteTaskResult {
+    return from_candid_variant_n18(_uploadFile, _downloadFile, value);
 }
-function from_candid_UpdateTaskResult_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UpdateTaskResult): UpdateTaskResult {
-    return from_candid_variant_n2(_uploadFile, _downloadFile, value);
+function from_candid_Priority_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Priority): Priority {
+    return from_candid_variant_n16(_uploadFile, _downloadFile, value);
 }
-function from_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    ok: _Task;
+function from_candid_Task_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Task): Task {
+    return from_candid_record_n10(_uploadFile, _downloadFile, value);
+}
+function from_candid_ToggleTaskResult_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ToggleTaskResult): ToggleTaskResult {
+    return from_candid_variant_n8(_uploadFile, _downloadFile, value);
+}
+function from_candid_UpdateTaskResult_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UpdateTaskResult): UpdateTaskResult {
+    return from_candid_variant_n8(_uploadFile, _downloadFile, value);
+}
+function from_candid_opt_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Category]): Category | null {
+    return value.length === 0 ? null : from_candid_Category_n12(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_opt_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Priority]): Priority | null {
+    return value.length === 0 ? null : from_candid_Priority_n15(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_record_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: _TaskId;
+    title: string;
+    owner: Principal;
+    createdAt: bigint;
+    completed: boolean;
+    description: string;
+    updatedAt: bigint;
+    category: [] | [_Category];
+    priority: [] | [_Priority];
+}): {
+    id: TaskId;
+    title: string;
+    owner: Principal;
+    createdAt: bigint;
+    completed: boolean;
+    description: string;
+    updatedAt: bigint;
+    category?: Category;
+    priority?: Priority;
+} {
+    return {
+        id: value.id,
+        title: value.title,
+        owner: value.owner,
+        createdAt: value.createdAt,
+        completed: value.completed,
+        description: value.description,
+        updatedAt: value.updatedAt,
+        category: record_opt_to_undefined(from_candid_opt_n11(_uploadFile, _downloadFile, value.category)),
+        priority: record_opt_to_undefined(from_candid_opt_n14(_uploadFile, _downloadFile, value.priority))
+    };
+}
+function from_candid_variant_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    Work: null;
+} | {
+    Personal: null;
+} | {
+    Urgent: null;
+}): Category {
+    return "Work" in value ? Category.Work : "Personal" in value ? Category.Personal : "Urgent" in value ? Category.Urgent : value;
+}
+function from_candid_variant_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    Low: null;
+} | {
+    High: null;
+} | {
+    Medium: null;
+}): Priority {
+    return "Low" in value ? Priority.Low : "High" in value ? Priority.High : "Medium" in value ? Priority.Medium : value;
+}
+function from_candid_variant_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    ok: boolean;
 } | {
     err: string;
 }): {
     __kind__: "ok";
-    ok: Task;
+    ok: boolean;
 } | {
     __kind__: "err";
     err: string;
@@ -239,23 +329,86 @@ function from_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uin
         err: value.err
     } : value;
 }
-function from_candid_variant_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    ok: boolean;
+function from_candid_variant_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    ok: _Task;
 } | {
     err: string;
 }): {
     __kind__: "ok";
-    ok: boolean;
+    ok: Task;
 } | {
     __kind__: "err";
     err: string;
 } {
     return "ok" in value ? {
         __kind__: "ok",
-        ok: value.ok
+        ok: from_candid_Task_n9(_uploadFile, _downloadFile, value.ok)
     } : "err" in value ? {
         __kind__: "err",
         err: value.err
+    } : value;
+}
+function from_candid_vec_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Task>): Array<Task> {
+    return value.map((x)=>from_candid_Task_n9(_uploadFile, _downloadFile, x));
+}
+function to_candid_Category_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Category): _Category {
+    return to_candid_variant_n4(_uploadFile, _downloadFile, value);
+}
+function to_candid_CreateTaskInput_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: CreateTaskInput): _CreateTaskInput {
+    return to_candid_record_n2(_uploadFile, _downloadFile, value);
+}
+function to_candid_Priority_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Priority): _Priority {
+    return to_candid_variant_n6(_uploadFile, _downloadFile, value);
+}
+function to_candid_UpdateTaskInput_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UpdateTaskInput): _UpdateTaskInput {
+    return to_candid_record_n2(_uploadFile, _downloadFile, value);
+}
+function to_candid_record_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    title: string;
+    description: string;
+    category?: Category;
+    priority?: Priority;
+}): {
+    title: string;
+    description: string;
+    category: [] | [_Category];
+    priority: [] | [_Priority];
+} {
+    return {
+        title: value.title,
+        description: value.description,
+        category: value.category ? candid_some(to_candid_Category_n3(_uploadFile, _downloadFile, value.category)) : candid_none(),
+        priority: value.priority ? candid_some(to_candid_Priority_n5(_uploadFile, _downloadFile, value.priority)) : candid_none()
+    };
+}
+function to_candid_variant_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Category): {
+    Work: null;
+} | {
+    Personal: null;
+} | {
+    Urgent: null;
+} {
+    return value == Category.Work ? {
+        Work: null
+    } : value == Category.Personal ? {
+        Personal: null
+    } : value == Category.Urgent ? {
+        Urgent: null
+    } : value;
+}
+function to_candid_variant_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Priority): {
+    Low: null;
+} | {
+    High: null;
+} | {
+    Medium: null;
+} {
+    return value == Priority.Low ? {
+        Low: null
+    } : value == Priority.High ? {
+        High: null
+    } : value == Priority.Medium ? {
+        Medium: null
     } : value;
 }
 export interface CreateActorOptions {
